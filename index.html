@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SENA LOGIX AI | Indian Army Predictive Logistics Command System</title>
+  <meta name="description" content="SENA LOGIX AI – AI-powered Predictive Logistics & Forward Supply Chain Management System for the Indian Army. Real-time mission readiness, demand forecasting, and route optimization." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Scan Line Overlay -->
+  <div class="scanline-overlay"></div>
+  <!-- Corner Brackets -->
+  <div class="corner-bracket corner-tl"></div>
+  <div class="corner-bracket corner-tr"></div>
+  <div class="corner-bracket corner-bl"></div>
+  <div class="corner-bracket corner-br"></div>
+
+  <!-- ═══════════════════ HEADER ═══════════════════ -->
+  <header class="main-header" id="mainHeader">
+    <div class="header-left">
+      <div class="logo-emblem">
+        <div class="emblem-ring"></div>
+        <div class="emblem-inner">
+          <span class="emblem-star">★</span>
+        </div>
+      </div>
+      <div class="header-brand">
+        <span class="brand-top">INDIAN ARMY</span>
+        <span class="brand-main">SENA LOGIX AI</span>
+        <span class="brand-sub">PREDICTIVE LOGISTICS COMMAND SYSTEM</span>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="header-clock" id="headerClock">
+        <div class="clock-time" id="clockTime">--:--:--</div>
+        <div class="clock-date" id="clockDate">--- ---, ----</div>
+        <div class="clock-tz">IST · UTC+05:30</div>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="header-status-bar">
+        <div class="status-pill green" id="systemStatusPill">
+          <span class="pulse-dot"></span> SYSTEM ACTIVE
+        </div>
+        <div class="status-pill">
+          <span>THREAT: </span><span class="status-val amber">MODERATE</span>
+        </div>
+        <div class="status-pill">
+          <span>SITREP: </span><span class="status-val green">NOMINAL</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="hdr-btn" id="alertsToggle" title="Alerts">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="badge" id="alertBadge">4</span>
+        </button>
+        <button class="hdr-btn" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+        <div class="user-avatar" title="Col. Arjun Singh">AS</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════ ALERTS PANEL ═══════════════════ -->
+  <div class="alerts-panel" id="alertsPanel">
+    <div class="alerts-panel-header">
+      <span>⚠ ACTIVE ALERTS</span>
+      <button onclick="document.getElementById('alertsPanel').classList.remove('open')" class="close-alerts">✕</button>
+    </div>
+    <div class="alerts-list">
+      <div class="alert-item critical">
+        <div class="alert-icon">🔴</div>
+        <div class="alert-body">
+          <strong>CRITICAL – Fuel Shortage</strong>
+          <p>Forward Base Siachen will exhaust fuel reserves within 6 days.</p>
+          <span class="alert-time">2 min ago</span>
+        </div>
+      </div>
+      <div class="alert-item warning">
+        <div class="alert-icon">🟡</div>
+        <div class="alert-body">
+          <strong>WARNING – Route NH-1</strong>
+          <p>Supply route NH-1 likely disrupted within 48 hours due to heavy snowfall.</p>
+          <span class="alert-time">15 min ago</span>
+        </div>
+      </div>
+      <div class="alert-item warning">
+        <div class="alert-icon">🟡</div>
+        <div class="alert-body">
+          <strong>WARNING – Medical Stock</strong>
+          <p>Medical inventory at Tawang below 30% safety threshold.</p>
+          <span class="alert-time">1 hr ago</span>
+        </div>
+      </div>
+      <div class="alert-item info">
+        <div class="alert-icon">🔵</div>
+        <div class="alert-body">
+          <strong>INFO – Winter Gear</strong>
+          <p>Pre-position winter gear recommended before Oct 20 snowfall forecast.</p>
+          <span class="alert-time">3 hr ago</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ MAIN LAYOUT ═══════════════════ -->
+  <div class="app-container">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-nav">
+        <a href="#" class="nav-item active" data-page="dashboard" id="nav-dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span>Command Center</span>
+        </a>
+        <a href="#" class="nav-item" data-page="gismap" id="nav-gismap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+          <span>GIS Logistics Map</span>
+        </a>
+        <a href="#" class="nav-item" data-page="forecast" id="nav-forecast">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span>Demand Forecasting</span>
+        </a>
+        <a href="#" class="nav-item" data-page="inventory" id="nav-inventory">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          <span>Inventory Intelligence</span>
+        </a>
+        <a href="#" class="nav-item" data-page="weather" id="nav-weather">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="8" y1="20" x2="8.01" y2="20"/><line x1="12" y1="18" x2="12.01" y2="18"/><line x1="12" y1="22" x2="12.01" y2="22"/><line x1="16" y1="16" x2="16.01" y2="16"/><line x1="16" y1="20" x2="16.01" y2="20"/></svg>
+          <span>Weather & Terrain</span>
+        </a>
+        <a href="#" class="nav-item" data-page="transport" id="nav-transport">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          <span>Transportation Hub</span>
+        </a>
+        <a href="#" class="nav-item" data-page="readiness" id="nav-readiness">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Mission Readiness</span>
+        </a>
+        <a href="#" class="nav-item" data-page="insights" id="nav-insights">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>AI Insights Center</span>
+        </a>
+        <a href="#" class="nav-item" data-page="simulator" id="nav-simulator">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span>Scenario Simulator</span>
+        </a>
+        <a href="#" class="nav-item" data-page="reports" id="nav-reports">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>Reports</span>
+        </a>
+        <a href="#" class="nav-item veer-nav" data-page="veer" id="nav-veer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>VEER AI Assistant</span>
+          <span class="nav-ai-badge">AI</span>
+        </a>
+      </div>
+      <div class="sidebar-footer">
+        <div class="sidebar-classify">🔒 CLASSIFIED · TOP SECRET</div>
+        <div class="sidebar-version">v4.2.1 · BUILD 2024-OCT</div>
+      </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content" id="mainContent">
+
+      <!-- ════════════════ PAGE: DASHBOARD ════════════════ -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <div class="page-title-group">
+            <h1 class="page-title">COMMAND CENTER</h1>
+            <span class="page-subtitle">Real-Time Logistics Intelligence · Northern Command Sector</span>
+          </div>
+          <div class="page-header-actions">
+            <select class="cmd-select" id="commandSelect" onchange="updateCommandData()">
+              <option value="northern">Northern Command</option>
+              <option value="western">Western Command</option>
+              <option value="eastern">Eastern Command</option>
+              <option value="southern">Southern Command</option>
+              <option value="central">Central Command</option>
+            </select>
+            <button class="btn-tactical" onclick="refreshDashboard()">↻ REFRESH</button>
+          </div>
+        </div>
+
+        <!-- TOP METRICS -->
+        <div class="metrics-grid" id="topMetrics">
+          <div class="metric-card" id="mc-readiness">
+            <div class="metric-bg-icon">🛡</div>
+            <div class="metric-label">MISSION READINESS</div>
+            <div class="metric-value green" id="mv-readiness">78<span class="metric-unit">%</span></div>
+            <div class="metric-trend up">▲ 3.2% vs last week</div>
+            <div class="metric-bar-wrap"><div class="metric-bar green" style="width:78%"></div></div>
+            <div class="metric-status green-tag">OPERATIONAL</div>
+          </div>
+          <div class="metric-card" id="mc-bases">
+            <div class="metric-bg-icon">🏔</div>
+            <div class="metric-label">ACTIVE FORWARD BASES</div>
+            <div class="metric-value blue" id="mv-bases">24</div>
+            <div class="metric-trend up">▲ 2 new deployments</div>
+            <div class="metric-mini-map">
+              <span class="mini-dot green"></span><span class="mini-dot green"></span><span class="mini-dot amber"></span><span class="mini-dot green"></span><span class="mini-dot red"></span><span class="mini-dot green"></span><span class="mini-dot green"></span><span class="mini-dot amber"></span>
+            </div>
+            <div class="metric-status blue-tag">24 ACTIVE</div>
+          </div>
+          <div class="metric-card alert-card" id="mc-alerts">
+            <div class="metric-bg-icon">⚠</div>
+            <div class="metric-label">CRITICAL SUPPLY ALERTS</div>
+            <div class="metric-value red" id="mv-alerts">4</div>
+            <div class="metric-trend down">▼ Requires immediate action</div>
+            <div class="alert-items-mini">
+              <span class="mini-alert red">FUEL</span>
+              <span class="mini-alert amber">MED</span>
+              <span class="mini-alert amber">AMMO</span>
+              <span class="mini-alert blue">GEAR</span>
+            </div>
+            <div class="metric-status red-tag">ACTION REQUIRED</div>
+          </div>
+          <div class="metric-card" id="mc-transport">
+            <div class="metric-bg-icon">🚛</div>
+            <div class="metric-label">TRANSPORT ASSETS</div>
+            <div class="metric-value blue" id="mv-transport">187</div>
+            <div class="metric-trend neutral">Trucks: 142 · Heli: 18 · Rail: 27</div>
+            <div class="transport-mini-bar">
+              <div class="tmb-item"><span>Trucks</span><div class="tmb-bar"><div class="tmb-fill green" style="width:76%"></div></div><span>142</span></div>
+              <div class="tmb-item"><span>Heli</span><div class="tmb-bar"><div class="tmb-fill amber" style="width:64%"></div></div><span>18</span></div>
+              <div class="tmb-item"><span>Rail</span><div class="tmb-bar"><div class="tmb-fill blue" style="width:90%"></div></div><span>27</span></div>
+            </div>
+          </div>
+          <div class="metric-card alert-card" id="mc-shortages">
+            <div class="metric-bg-icon">📉</div>
+            <div class="metric-label">PREDICTED SHORTAGES</div>
+            <div class="metric-value amber" id="mv-shortages">7</div>
+            <div class="metric-trend down">▼ Next 30 days forecast</div>
+            <div class="shortage-list-mini">
+              <div class="slm-item"><span>Siachen – Fuel</span><span class="slm-days red">6 days</span></div>
+              <div class="slm-item"><span>Tawang – Med</span><span class="slm-days amber">12 days</span></div>
+              <div class="slm-item"><span>Leh – Rations</span><span class="slm-days amber">18 days</span></div>
+            </div>
+          </div>
+          <div class="metric-card" id="mc-weather">
+            <div class="metric-bg-icon">🌨</div>
+            <div class="metric-label">WEATHER RISK INDEX</div>
+            <div class="metric-value amber" id="mv-weather">6.4<span class="metric-unit">/10</span></div>
+            <div class="metric-trend down">▼ Snowfall imminent – NH-1</div>
+            <div class="weather-zones">
+              <span class="wz red">SIACHEN: SEVERE</span>
+              <span class="wz amber">LEH: HIGH</span>
+              <span class="wz green">JAISALMER: LOW</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUPPLY CHAIN OVERVIEW + READINESS DONUT -->
+        <div class="dashboard-row-2">
+          <div class="glass-card supply-trend-card">
+            <div class="card-header">
+              <span class="card-title">SUPPLY CHAIN PERFORMANCE – 30 DAY TREND</span>
+              <div class="card-controls">
+                <button class="tab-btn active" onclick="switchSupplyTab(this,'fuel')">Fuel</button>
+                <button class="tab-btn" onclick="switchSupplyTab(this,'ammo')">Ammo</button>
+                <button class="tab-btn" onclick="switchSupplyTab(this,'rations')">Rations</button>
+                <button class="tab-btn" onclick="switchSupplyTab(this,'medicine')">Medicine</button>
+              </div>
+            </div>
+            <canvas id="supplyTrendChart" height="180"></canvas>
+          </div>
+          <div class="glass-card readiness-donut-card">
+            <div class="card-header"><span class="card-title">READINESS BREAKDOWN</span></div>
+            <canvas id="readinessDonut" height="200"></canvas>
+            <div class="donut-legend">
+              <div class="dl-item"><span class="dl-dot" style="background:#4ade80"></span>Inventory <strong>82%</strong></div>
+              <div class="dl-item"><span class="dl-dot" style="background:#3b82f6"></span>Transport <strong>76%</strong></div>
+              <div class="dl-item"><span class="dl-dot" style="background:#f59e0b"></span>Weather <strong>61%</strong></div>
+              <div class="dl-item"><span class="dl-dot" style="background:#a855f7"></span>Supply Chain <strong>79%</strong></div>
+              <div class="dl-item"><span class="dl-dot" style="background:#ef4444"></span>Op Risk <strong>68%</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECENT ACTIVITY + AI QUICK INSIGHTS -->
+        <div class="dashboard-row-3">
+          <div class="glass-card activity-card">
+            <div class="card-header"><span class="card-title">LOGISTICS ACTIVITY FEED</span><span class="live-badge">● LIVE</span></div>
+            <div class="activity-feed" id="activityFeed">
+              <div class="af-item critical"><span class="af-time">12:41</span><span class="af-msg">🔴 ALERT: Fuel convoy to Siachen delayed – road blockage at 14,000 ft</span></div>
+              <div class="af-item warning"><span class="af-time">12:38</span><span class="af-msg">🟡 WARNING: Medical supplies below threshold at Tawang Base</span></div>
+              <div class="af-item info"><span class="af-time">12:30</span><span class="af-msg">🔵 INFO: Helicopter sortie dispatched – 2.4 tonnes rations to Siachen</span></div>
+              <div class="af-item success"><span class="af-time">12:22</span><span class="af-msg">🟢 SUCCESS: Ammunition convoy arrived at Leh – 94% on schedule</span></div>
+              <div class="af-item info"><span class="af-time">12:10</span><span class="af-msg">🔵 INFO: AI forecast updated – winter gear demand spike predicted Oct 20</span></div>
+              <div class="af-item success"><span class="af-time">11:58</span><span class="af-msg">🟢 SUCCESS: Supply depot Jaisalmer restocked – rations +30 day buffer</span></div>
+              <div class="af-item warning"><span class="af-time">11:45</span><span class="af-msg">🟡 WARNING: NH-58 landslide probability 72% – rerouting convoy 7-B</span></div>
+              <div class="af-item info"><span class="af-time">11:30</span><span class="af-msg">🔵 INFO: Engineering supplies dispatched – Arunachal forward post</span></div>
+            </div>
+          </div>
+          <div class="glass-card ai-quick-card">
+            <div class="card-header"><span class="card-title">🤖 VEER AI – QUICK INSIGHTS</span><span class="ai-badge">POWERED BY AI</span></div>
+            <div class="ai-insights-list">
+              <div class="ai-insight critical-ins">
+                <div class="ins-priority">P1</div>
+                <div class="ins-body">
+                  <strong>Increase fuel reserves at Leh by 15%</strong>
+                  <p>AI predicts 18% demand spike due to troop rotation next week.</p>
+                </div>
+                <button class="ins-action" onclick="switchPage('veer')">QUERY AI</button>
+              </div>
+              <div class="ai-insight warning-ins">
+                <div class="ins-priority">P2</div>
+                <div class="ins-body">
+                  <strong>Dispatch medical supplies to Tawang within 72 hrs</strong>
+                  <p>Current stock will reach critical threshold by Day 4.</p>
+                </div>
+                <button class="ins-action" onclick="switchPage('veer')">QUERY AI</button>
+              </div>
+              <div class="ai-insight info-ins">
+                <div class="ins-priority">P3</div>
+                <div class="ins-body">
+                  <strong>Pre-position winter gear before Oct 20 snowfall</strong>
+                  <p>Meteorological data confirms 85% probability of heavy snowfall.</p>
+                </div>
+                <button class="ins-action" onclick="switchPage('veer')">QUERY AI</button>
+              </div>
+              <div class="ai-insight info-ins">
+                <div class="ins-priority">P4</div>
+                <div class="ins-body">
+                  <strong>Reallocate transport from Central Command (48 hrs)</strong>
+                  <p>Northern Command faces 23% transport deficit for Oct operations.</p>
+                </div>
+                <button class="ins-action" onclick="switchPage('veer')">QUERY AI</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- REGION STATUS TABLE -->
+        <div class="glass-card region-status-card">
+          <div class="card-header">
+            <span class="card-title">REGIONAL LOGISTICS STATUS – ALL COMMANDS</span>
+            <button class="btn-tactical small" onclick="switchPage('reports')">EXPORT REPORT</button>
+          </div>
+          <table class="tactical-table" id="regionTable">
+            <thead>
+              <tr>
+                <th>BASE / REGION</th>
+                <th>COMMAND</th>
+                <th>READINESS</th>
+                <th>FUEL</th>
+                <th>AMMO</th>
+                <th>RATIONS</th>
+                <th>MEDICAL</th>
+                <th>TRANSPORT</th>
+                <th>WEATHER RISK</th>
+                <th>STATUS</th>
+              </tr>
+            </thead>
+            <tbody id="regionTableBody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ════════════════ PAGE: GIS MAP ════════════════ -->
+      <div class="page" id="page-gismap">
+        <div class="page-header">
+          <div class="page-title-group">
+            <h1 class="page-title">GIS LOGISTICS MAP</h1>
+            <span class="page-subtitle">Interactive Supply Chain Visualization · India Theatre</span>
+          </div>
+          <div class="page-header-actions">
+            <div class="map-legend">
+              <span class="leg-item"><span class="leg-dot green"></span>Normal</span>
+              <span class="leg-item"><span class="leg-dot amber"></span>Watch</span>
+              <span class="leg-item"><span class="leg-dot red"></span>Critical</span>
+            </div>
+            <div class="map-layer-btns">
+              <button class="layer-btn active" onclick="toggleLayer(this,'bases')">Bases</button>
+              <button class="layer-btn active" onclick="toggleLayer(this,'depots')">Depots</button>
+              <button class="layer-btn active" onclick="toggleLayer(this,'routes')">Routes</button>
+              <button class="layer-btn active" onclick="toggleLayer(this,'hubs')">Hubs</button>
+            </div>
+          </div>
+        </div>
+        <div class="map-container-wrap">
+          <div id="logisticsMap" class="logistics-map"></div>
+          <div class="map-info-panel" id="mapInfoPanel">
+            <div class="mip-header">
+              <span id="mipTitle">SELECT A LOCATION</span>
+              <button onclick="closeMapPanel()" class="mip-close">✕</button>
+            </div>
+            <div class="mip-content" id="mipContent">
+              <p class="mip-placeholder">Click on any base, depot, or hub on the map to view detailed logistics intelligence.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════ PAGE: DEMAND FORECASTING ════════════════ -->
+      <div class="page" id="page-forecast">
+        <div class="page-header">
+          <div class="page-title-group">
+            <h1 class="page-title">PREDICTIVE DEMAND FORECASTING</h1>
+            <span class="page-subtitle">AI-Powered Supply Requirement Prediction Engine</span>
+          </div>
+          <div class="page-header-actions">
+            <select class="cmd-select" id="forecastBase">
+              <option>All Bases</option>
+              <option>Leh</option>
+              <option>Siachen</option>
+              <option>Tawang</option>
+              <option>Jaisalmer</option>
+              <option>Srinagar</option>
+              <option>Arunachal Sector</option>
+            </select>
+            <select class="cmd-select" id="forecastPeriod" onchange="updateForecastCharts()">
+              <option value="7">7-Day Forecast</option>
+              <option value="30" selected>30-Day Forecast</option>
+              <option value="90">90-Day Forecast</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Supply Category Cards -->
+        <div class="forecast-cat-grid">
+          <div class="fcat-card" onclick="showForecastDetail('fuel')">
+            <div class="fcat-icon">⛽</div>
+            <div class="fcat-name">FUEL</div>
+            <div class="fcat-value red">6,240 <span>kL</span></div>
+            <div class="fcat-trend">↑ 18% predicted spike</div>
+            <div class="fcat-confidence">AI Confidence: <strong>91%</strong></div>
+            <div class="fcat-bar"><div class="fcat-fill red" style="width:78%"></div></div>
+          </div>
+          <div class="fcat-card" onclick="showForecastDetail('ammo')">
+            <div class="fcat-icon">💥</div>
+            <div class="fcat-name">AMMUNITION</div>
+            <div class="fcat-value amber">4,820 <span>tons</span></div>
+            <div class="fcat-trend">→ Stable demand expected</div>
+            <div class="fcat-confidence">AI Confidence: <strong>87%</strong></div>
+            <div class="fcat-bar"><div class="fcat-fill amber" style="width:62%"></div></div>
+          </div>
+          <div class="fcat-card" onclick="showForecastDetail('rations')">
+            <div class="fcat-icon">🍱</div>
+            <div class="fcat-name">FOOD RATIONS</div>
+            <div class="fcat-value green">18,600 <span>packs</span></div>
+            <div class="fcat-trend">↑ 8% seasonal increase</div>
+            <div class="fcat-confidence">AI Confidence: <strong>94%</strong></div>
+            <div class="fcat-bar"><div class="fcat-fill green" style="width:85%"></div></div>
+          </div>
+          <div class="fcat-card" onclick="showForecastDetail('medicine')">
+            <div class="fcat-icon">💊</div>
+            <div class="fcat-name">MEDICINES</div>
+            <div class="fcat-value red">2,140 <span>units</span></div>
+            <div class="fcat-trend">↑ 22% altitude illness risk</div>
+            <div class="fcat-confidence">AI Confidence: <strong>89%</strong></div>
+            <div class="fcat-bar"><div class="fcat-fill red" style="width:88%"></div></div>
+          </div>
+          <div class="fcat-card" onclick="showForecastDetail('winter')">
+            <div class="fcat-icon">🧥</div>
+            <div class="fcat-name">WINTER EQUIPMENT</div>
+            <div class="fcat-value amber">8,450 <span>sets</span></div>
+            <div class="fcat-trend">↑ 35% seasonal demand spike</div>
+            <div class="fcat-confidence">AI Confidence: <strong>96%</strong></div>
+            <div class="fcat-bar"><div class="fcat-fill amber" style="width:92%"></div></div>
+          </div>
+          <div class="fcat-card" onclick="showForecastDetail('engineering')">
+            <div class="fcat-icon">🔧</div>
+            <div class="fcat-name">ENGINEERING SUPPLIES</div>
+            <div class="fcat-value blue">1,280 <span>units</span></div>
+            <div class="fcat-trend">→ Steady requirement</div>
+            <div class="fcat-confidence">AI Confidence: <strong>83%</strong></div>
+            <div class="fcat-bar"><div class="fcat-fill blue" style="width:55%"></div></div>
+          </div>
+        </div>
+
+        <!-- Main Forecast Chart -->
+        <div class="glass-card forecast-main-card">
+          <div class="card-header">
+            <span class="card-title" id="forecastChartTitle">FUEL DEMAND FORECAST – 30 DAY PROJECTION</span>
+            <div class="forecast-legend">
+              <span class="fl-item"><span style="background:#4ade80;display:inline-block;width:12px;height:3px;margin-right:4px;vertical-align:middle"></span>Historical</span>
+              <span class="fl-item"><span style="background:#3b82f6;display:inline-block;width:12px;height:3px;margin-right:4px;vertical-align:middle"></span>AI Forecast</span>
+              <span class="fl-item"><span style="background:rgba(59,130,246,0.2);display:inline-block;width:12px;height:8px;margin-right:4px;vertical-align:middle"></span>Confidence Band</span>
+            </div>
+          </div>
+          <canvas id="forecastChart" height="200"></canvas>
+          <div class="forecast-summary-row">
+            <div class="fsr-item">
+              <span class="fsr-label">7-DAY FORECAST</span>
+              <span class="fsr-val" id="fsr7">1,560 kL</span>
+            </div>
+            <div class="fsr-item">
+              <span class="fsr-label">30-DAY FORECAST</span>
+              <span class="fsr-val" id="fsr30">6,240 kL</span>
+            </div>
+            <div class="fsr-item">
+              <span class="fsr-label">AI CONFIDENCE</span>
+              <span class="fsr-val green">91.4%</span>
+            </div>
+            <div class="fsr-item">
+              <span class="fsr-label">RISK LEVEL</span>
+              <span class="fsr-val red">HIGH</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Base-wise Forecast Table -->
+        <div class="glass-card">
+          <div class="card-header"><span class="card-title">BASE-WISE DEMAND FORECAST MATRIX</span></div>
+          <table class="tactical-table">
+            <thead>
+              <tr><th>BASE</th><th>FUEL (kL)</th><th>AMMO (T)</th><th>RATIONS</th><th>MEDICINE</th><th>WINTER GEAR</th><th>CONF.</th><th>RISK</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Leh</td><td>1,840</td><td>1,200</td><td>5,200</td><td>620</td><td>2,400</td><td class="green">93%</td><td class="amber">MEDIUM</td></tr>
+              <tr><td>Siachen</td><td class="red">2,100</td><td>800</td><td>2,800</td><td>480</td><td>3,100</td><td class="green">91%</td><td class="red">HIGH</td></tr>
+              <tr><td>Tawang</td><td>880</td><td>640</td><td>3,400</td><td class="red">520</td><td>1,800</td><td class="amber">87%</td><td class="amber">MEDIUM</td></tr>
+              <tr><td>Jaisalmer</td><td>640</td><td>920</td><td>4,100</td><td>280</td><td>200</td><td class="green">96%</td><td class="green">LOW</td></tr>
+              <tr><td>Srinagar</td><td>980</td><td>700</td><td>4,800</td><td>340</td><td>1,200</td><td class="green">94%</td><td class="amber">MEDIUM</td></tr>
+              <tr><td>Arunachal Sector</td><td>720</td><td>560</td><td>2,900</td><td>310</td><td>1,600</td><td class="amber">85%</td><td class="amber">MEDIUM</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ════════════════ PAGE: INVENTORY ════════════════ -->
+      <div class="page" id="page-inventory">
+        <div class="page-header">
+          <div class="page-title-group">
+            <h1 class="page-title">INVENTORY INTELLIGENCE</h1>
+            <span class="page-subtitle">Real-Time Stock Monitoring & Reorder Intelligence</span>
+          </div>
+          <div class="page-header-actions">
+            <button class="btn-tactical" onclick="generateReorderRecommendations()">🤖 AI REORDER ADVICE</button>
+          </div>
+        </div>
+
+        <!-- Critical Alerts Banner -->
+        <div class="inv-alerts-banner">
+          <div class="iab-item critical">
+            <span class="iab-icon">🔴</span>
+            <span>Forward Base Siachen will exhaust fuel reserves within <strong>6 days</strong></span>
+            <button class="iab-act" onclick="dispatchAlert('fuel','Siachen')">DISPATCH NOW</button>
+          </div>
+          <div class="iab-item warning">
+            <span class="iab-icon">🟡</span>
+            <span>Medical inventory at Tawang below <strong>30% safety threshold</strong></span>
+            <button class="iab-act" onclick="dispatchAlert('medicine','Tawang')">REORDER</button>
+          </div>
+          <div class="iab-item warning">
+            <span class="iab-icon">🟡</span>
+            <span>Winter gear stock insufficient for projected October deployment</span>
+            <button class="iab-act" onclick="dispatchAlert('winter','All Bases')">PRE-POSITION</button>
+          </div>
+        </div>
+
+        <!-- Inventory Cards -->
+        <div class="inv-cards-grid">
+          <div class="inv-card">
+            <div class="inv-card-header">
+              <span class="inv-supply-name">⛽ FUEL RESERVES</span>
+              <span class="inv-status-tag red">CRITICAL</span>
+            </div>
+            <div class="inv-metrics">
+              <div class="inv-metric"><span>Total Stock</span><strong>18,400 kL</strong></div>
+              <div class="inv-metric"><span>Safety Stock</span><strong>22,000 kL</strong></div>
+              <div class="inv-metric"><span>Consumption/Day</span><strong>420 kL</strong></div>
+              <div class="inv-metric red"><span>Days Remaining</span><strong>43 days</strong></div>
+            </div>
+            <div class="inv-progress-wrap">
+              <div class="inv-progress red" style="width:64%"></div>
+              <div class="inv-safety-line" style="left:80%"></div>
+            </div>
+            <div class="inv-progress-labels"><span>0</span><span class="inv-safety-label">Safety: 22K</span><span>30K kL</span></div>
+            <canvas id="invFuelChart" height="80"></canvas>
+          </div>
+          <div class="inv-card">
+            <div class="inv-card-header">
+              <span class="inv-supply-name">💥 AMMUNITION</span>
+              <span class="inv-status-tag amber">WATCH</span>
+            </div>
+            <div class="inv-metrics">
+              <div class="inv-metric"><span>Total Stock</span><strong>12,800 tons</strong></div>
+              <div class="inv-metric"><span>Safety Stock</span><strong>10,000 tons</strong></div>
+              <div class="inv-metric"><span>Consumption/Day</span><strong>48 tons</strong></div>
+              <div class="inv-metric green"><span>Days Remaining</span><strong>266 days</strong></div>
+            </div>
+            <div class="inv-progress-wrap">
+              <div class="inv-progress green" style="width:85%"></div>
+              <div class="inv-safety-line" style="left:67%"></div>
+            </div>
+            <div class="inv-progress-labels"><span>0</span><span class="inv-safety-label">Safety: 10K</span><span>15K tons</span></div>
+            <canvas id="invAmmoChart" height="80"></canvas>
+          </div>
+          <div class="inv-card">
+            <div class="inv-card-header">
+              <span class="inv-supply-name">🍱 FOOD RATIONS</span>
+              <span class="inv-status-tag green">ADEQUATE</span>
+            </div>
+            <div class="inv-metrics">
+              <div class="inv-metric"><span>Total Stock</span><strong>84,200 packs</strong></div>
+              <div class="inv-metric"><span>Safety Stock</span><strong>60,000 packs</strong></div>
+              <div class="inv-metric"><span>Consumption/Day</span><strong>1,860 packs</strong></div>
+              <div class="inv-metric green"><span>Days Remaining</span><strong>45 days</strong></div>
+            </div>
+            <div class="inv-progress-wrap">
+              <div class="inv-progress green" style="width:81%"></div>
+              <div class="inv-safety-line" style="left:58%"></div>
+            </div>
+            <div class="inv-progress-labels"><span>0</span><span class="inv-safety-label">Safety: 60K</span><span>103K packs</span></div>
+            <canvas id="invRationsChart" height="80"></canvas>
+          </div>
+          <div class="inv-card">
+            <div class="inv-card-header">
+              <span class="inv-supply-name">💊 MEDICINES</span>
+              <span class="inv-status-tag red">CRITICAL</span>
+            </div>
+            <div class="inv-metrics">
+              <div class="inv-metric"><span>Total Stock</span><strong>3,200 units</strong></div>
+              <div class="inv-metric"><span>Safety Stock</span><strong>5,000 units</strong></div>
+              <div class="inv-metric"><span>Consumption/Day</span><strong>86 units</strong></div>
+              <div class="inv-metric red"><span>Days Remaining</span><strong>37 days</strong></div>
+            </div>
+            <div class="inv-progress-wrap">
+              <div class="inv-progress red" style="width:32%"></div>
+              <div class="inv-safety-line" style="left:50%"></div>
+            </div>
+            <div class="inv-progress-labels"><span>0</span><span class="inv-safety-label">Safety: 5K</span><span>10K units</span></div>
+            <canvas id="invMedChart" height="80"></canvas>
+          </div>
+          <div class="inv-card">
+            <div class="inv-card-header">
+              <span class="inv-supply-name">🧥 WINTER EQUIPMENT</span>
+              <span class="inv-status-tag amber">WATCH</span>
+            </div>
+            <div class="inv-metrics">
+              <div class="inv-metric"><span>Total Stock</span><strong>6,400 sets</strong></div>
+              <div class="inv-metric"><span>Safety Stock</span><strong>8,500 sets</strong></div>
+              <div class="inv-metric"><span>Demand/Season</span><strong>8,450 sets</strong></div>
+              <div class="inv-metric amber"><span>Gap</span><strong>-2,050 sets</strong></div>
+            </div>
+            <div class="inv-progress-wrap">
+              <div class="inv-progress amber" style="width:57%"></div>
+              <div class="inv-safety-line" style="left:76%"></div>
+            </div>
+            <div class="inv-progress-labels"><span>0</span><span class="inv-safety-label">Safety: 8.5K</span><span>11K sets</span></div>
+            <canvas id="invWinterChart" height="80"></canvas>
+          </div>
+          <div class="inv-card">
+            <div class="inv-card-header">
+              <span class="inv-supply-name">🔧 ENGINEERING SUPPLIES</span>
+              <span class="inv-status-tag green">ADEQUATE</span>
+            </div>
+            <div class="inv-metrics">
+              <div class="inv-metric"><span>Total Stock</span><strong>4,100 units</strong></div>
+              <div class="inv-metric"><span>Safety Stock</span><strong>2,500 units</strong></div>
+              <div class="inv-metric"><span>Consumption/Day</span><strong>28 units</strong></div>
+              <div class="inv-metric green"><span>Days Remaining</span><strong>146 days</strong></div>
+            </div>
+            <div class="inv-progress-wrap">
+              <div class="inv-progress green" style="width:74%"></div>
+              <div class="inv-safety-line" style="left:45%"></div>
+            </div>
+            <div class="inv-progress-labels"><span>0</span><span class="inv-safety-label">Safety: 2.5K</span><span>5.5K units</span></div>
+            <canvas id="invEngChart" height="80"></canvas>
+          </div>
+        </div>
+
+        <!-- Reorder Recommendations -->
+        <div class="glass-card" id="reorderPanel">
+          <div class="card-header"><span class="card-title">🤖 AI REORDER RECOMMENDATIONS</span><span class="ai-badge">VEER AI</span></div>
+          <div class="reorder-grid" id="reorderGrid">
+            <div class="reorder-item p1">
+              <div class="ri-header"><span class="ri-priority">PRIORITY 1</span><span class="ri-item">Fuel – Siachen Base</span></div>
+              <div class="ri-details">Dispatch <strong>2,400 kL</strong> via helicopter airlift within <strong>48 hours</strong>. Current stock will reach zero in 6 days.</div>
+              <div class="ri-actions"><button class="btn-tactical small" onclick="approveReorder(this)">APPROVE</button><button class="btn-outline small">DEFER</button></div>
+            </div>
+            <div class="reorder-item p2">
+              <div class="ri-header"><span class="ri-priority">PRIORITY 2</span><span class="ri-item">Medicine – Tawang Base</span></div>
+              <div class="ri-details">Requisition <strong>4,200 units</strong> from Central Medical Store. Road convoy via NH-13 recommended.</div>
+              <div class="ri-actions"><button class="btn-tactical small" onclick="approveReorder(this)">APPROVE</button><button class="btn-outline small">DEFER</button></div>
+            </div>
+            <div class="reorder-item p2">
+              <div class="ri-header"><span class="ri-priority">PRIORITY 3</span><span class="ri-item">Winter Gear – All Northern Bases</span></div>
+              <div class="ri-details">Pre-position <strong>4,200 additional sets</strong> before Oct 20. Procure from ASC depot Chandigarh.</div>
+              <div class="ri-actions"><button class="btn-tactical small" onclick="approveReorder(this)">APPROVE</button><button class="btn-outline small">DEFER</button></div>
+            </div>
+            <div class="reorder-item p3">
+              <div class="ri-header"><span class="ri-priority">PRIORITY 4</span><span class="ri-item">Fuel – Leh Base (15% Buffer)</span></div>
+              <div class="ri-details">Increase fuel buffer by <strong>2,760 kL</strong> ahead of troop rotation. Schedule next week dispatch.</div>
+              <div class="ri-actions"><button class="btn-tactical small" onclick="approveReorder(this)">APPROVE</button><button class="btn-outline small">DEFER</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════ PAGE: WEATHER ════════════════ -->
+      <div class="page" id="page-weather">
+        <div class="page-header">
+          <div class="page-title-group">
+            <h1 class="page-title">WEATHER & TERRAIN INTELLIGENCE</h1>
+            <span class="page-subtitle">Meteorological Risk Assessment & Route Accessibility Analysis</span>
+          </div>
+          <div class="page-header-actions">
+            <div class="weather-updated">Last Updated: <strong id="weatherUpdated">12:40 IST</strong></div>
+          </div>
+        </div>
+
+        <!-- Critical Weather Alerts -->
+        <div class="weather-alert-banner">
+          <div class="wab-item critical">
+            <div class="wab-icon">❄️</div>
+            <div class="wab-body">
+              <strong>CRITICAL – NH-1 DISRUPTION PREDICTED</strong>
+              <p>Supply route NH-1 (Srinagar–Leh) likely to face disruption within 48 hours due to heavy snowfall. Accumulation forecast: 60-80cm. Alternate route NH-3 recommended.</p>
+            </div>
+            <div class="wab-time">ACTIVE NOW</div>
+          </div>
+        </div>
+
+        <div class="weather-grid">
+          <!-- Base Weather Cards -->
+          <div class="glass-card weather-zone-card">
+            <div class="card-header"><span class="card-title">ZONE-WISE WEATHER STATUS</span></div>
+            <div class="weather-zones-list">
+              <div class="wzl-item">
+                <div class="wzl-top">
+                  <span class="wzl-name">SIACHEN GLACIER</span>
+                  <span class="wzl-risk red">SEVERE</span>
+                </div>
+                <div class="wzl-data">
+                  <span>❄️ Snowfall: <strong>Heavy (40-60cm)</strong></span>
+                  <span>🌡️ Temp: <strong>-18°C</strong></span>
+                  <span>💨 Wind: <strong>72 km/h</strong></span>
+                  <span>👁️ Visibility: <strong>200m</strong></span>
+                </div>
+                <div class="wzl-bar-wrap"><div class="wzl-bar red" style="width:92%"></div><span>Risk: 9.2/10</span></div>
+                <div class="wzl-alerts">
+                  <span class="wzl-alert">❌ No road access</span>
+                  <span class="wzl-alert">⚠ Heli ops marginal</span>
+                </div>
+              </div>
+              <div class="wzl-item">
+                <div class="wzl-top">
+                  <span class="wzl-name">LEH / LADAKH</span>
+                  <span class="wzl-risk amber">HIGH</span>
+                </div>
+                <div class="wzl-data">
+                  <span>❄️ Snowfall: <strong>Moderate (15-25cm)</strong></span>
+                  <span>🌡️ Temp: <strong>-6°C</strong></span>
+                  <span>💨 Wind: <strong>35 km/h</strong></span>
+                  <span>👁️ Visibility: <strong>1.2 km</strong></span>
+                </div>
+                <div class="wzl-bar-wrap"><div class="wzl-bar amber" style="width:68%"></div><span>Risk: 6.8/10</span></div>
+                <div class="wzl-alerts">
+                  <span class="wzl-alert-ok">✓ NH-1 partially open</span>
+                  <span class="wzl-alert">⚠ Night ops restricted</span>
+                </div>
+              </div>
+              <div class="wzl-item">
+                <div class="wzl-top">
+                  <span class="wzl-name">TAWANG / ARUNACHAL</span>
+                  <span class="wzl-risk amber">MODERATE</span>
+                </div>
+                <div class="wzl-data">
+                  <span>🌧️ Rainfall: <strong>Heavy (120mm)</strong></span>
+                  <span>🌡️ Temp: <strong>8°C</strong></span>
+                  <span>💨 Wind: <strong>28 km/h</strong></span>
+                  <span>👁️ Visibility: <strong>800m</strong></span>
+                </div>
+                <div class="wzl-bar-wrap"><div class="wzl-bar amber" style="width:58%"></div><span>Risk: 5.8/10</span></div>
+                <div class="wzl-alerts">
+                  <span class="wzl-alert">⚠ Landslide probability: 72%</span>
+                  <span class="wzl-alert-ok">✓ Air corridor open</span>
+                </div>
+              </div>
+              <div class="wzl-item">
+                <div class="wzl-top">
+                  <span class="wzl-name">JAISALMER / DESERT</span>
+                  <span class="wzl-risk green">LOW</span>
+                </div>
+                <div class="wzl-data">
+                  <span>🌬️ Dust Storm: <strong>Possible</strong></span>
+                  <span>🌡️ Temp: <strong>34°C</strong></span>
+                  <span>💨 Wind: <strong>42 km/h</strong></span>
+                  <span>👁️ Visibility: <strong>3.5 km</strong></span>
+                </div>
+                <div class="wzl-bar-wrap"><div class="wzl-bar green" style="width:28%"></div><span>Risk: 2.8/10</span></div>
+                <div class="wzl-alerts">
+                  <span class="wzl-alert-ok">✓ All routes open</span>
+                  <span class="wzl-alert-ok">✓ Full operational capacity</span>
+                </div>
+              </div>
+              <div class="wzl-item">
+                <div class="wzl-top">
+                  <span class="wzl-name">SRINAGAR / KASHMIR</span>
+                  <span class="wzl-risk amber">MODERATE</span>
+                </div>
+                <div class="wzl-data">
+                  <span>❄️ Snowfall: <strong>Light (5-10cm)</strong></span>
+                  <span>🌡️ Temp: <strong>2°C</strong></span>
+                  <span>💨 Wind: <strong>18 km/h</strong></span>
+                  <span>👁️ Visibility: <strong>2.1 km</strong></span>
+                </div>
+                <div class="wzl-bar-wrap"><div class="wzl-bar amber" style="width:45%"></div><span>Risk: 4.5/10</span></div>
+                <div class="wzl-alerts">
+                  <span class="wzl-alert-ok">✓ Airfield operational</span>
+                  <span class="wzl-alert">⚠ Mountain passes watch</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="weather-right-col">
+            <!-- Snowfall Forecast Chart -->
+            <div class="glass-card">
+              <div class="card-header"><span class="card-title">7-DAY SNOWFALL FORECAST</span></div>
+              <canvas id="snowfallChart" height="160"></canvas>
+            </div>
+
+            <!-- Route Risk Matrix -->
+            <div class="glass-card">
+              <div class="card-header"><span class="card-title">ROUTE ACCESSIBILITY MATRIX</span></div>
+              <table class="tactical-table">
+                <thead><tr><th>ROUTE</th><th>FROM → TO</th><th>CONDITION</th><th>RISK</th><th>BLOCKAGE PROB.</th><th>ALT. ROUTE</th></tr></thead>
+                <tbody>
+                  <tr><td>NH-1</td><td>Srinagar → Leh</td><td class="amber">RESTRICTED</td><td class="red">HIGH</td><td class="red">82%</td><td>NH-3 via Manali</td></tr>
+                  <tr><td>NH-3</td><td>Manali → Leh</td><td class="amber">PARTIAL</td><td class="amber">MEDIUM</td><td class="amber">45%</td><td>Air Corridor</td></tr>
+                  <tr><td>NH-13</td><td>Dibrugarh → Tawang</td><td class="amber">WATCH</td><td class="amber">MEDIUM</td><td class="amber">52%</td><td>Helicopter</td></tr>
+                  <tr><td>NH-44</td><td>Pathankot → Srinagar</td><td class="green">OPEN</td><td class="green">LOW</td><td class="green">12%</td><td>N/A</td></tr>
+                  <tr><td>NH-62</td><td>Jodhpur → Jaisalmer</td><td class="green">OPEN</td><td class="green">LOW</td><td class="green">8%</td><td>N/A</td></tr>
+                  <tr><td>SIACHEN ROUTE</td><td>Leh → Siachen</td><td class="red">BLOCKED</td><td class="red">SEVERE</td><td class="red">95%</td><td>Air Lift Only</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Landslide Risk -->
+            <div class="glass-card">
+              <div class="card-header"><span class="card-title">TERRAIN RISK HEATMAP</span></div>
+              <canvas id="terrainHeatmap" height="150"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════ PAGE: TRANSPORT ════════════════ -->
+      <div class="page" id="page-transport">
+        <div class="page-header">
+          <div class="page-title-group">
+            <h1 class="page-title">TRANSPORTATION HUB</h1>
+            <span class="page-subtitle">Convoy Planning, Route Optimization & Fleet Management</span>
+          </div>
+          <div class="page-header-actions">
+            <button class="btn-tactical" onclick="planNewConvoy()">+ PLAN NEW CONVOY</button>
+            <button class="btn-outline" onclick="optimizeRoutes()">⚡ OPTIMIZE ROUTES</button>
+          </div>
+        </div>
+
+        <!-- Fleet Status -->
+        <div class="fleet-status-grid">
+          <div class="fleet-card">
+            <div class="fleet-icon">🚛</div>
+            <div class="fleet-name">HEAVY TRUCKS</div>
+            <div class="fleet-nums">
+              <div class="fn-item green"><span>Available</span><strong>98</strong></div>
+              <div class="fn-item amber"><span>In Transit</span><strong>32</strong></div>
+              <div class="fn-item red"><span>Maintenance</span><strong>12</strong></div>
+            </div>
+            <div class="fleet-util">Utilization: <strong>76%</strong></div>
+            <div class="fleet-bar"><div class="fb-fill amber" style="width:76%"></div></div>
+          </div>
+          <div class="fleet-card">
+            <div class="fleet-icon">🚁</div>
+            <div class="fleet-name">HELICOPTERS</div>
+            <div class="fleet-nums">
+              <div class="fn-item green"><span>Available</span><strong>11</strong></div>
+              <div class="fn-item amber"><span>Deployed</span><strong>5</strong></div>
+              <div class="fn-item red"><span>Grounded</span><strong>2</strong></div>
+            </div>
+            <div class="fleet-util">Utilization: <strong>64%</strong></div>
+            <div class="fleet-bar"><div class="fb-fill green" style="width:64%"></div></div>
+          </div>
+          <div class="fleet-card">
+            <div class="fleet-icon">✈️</div>
+            <div class="fleet-name">AIRLIFT (AN-32/C-130)</div>
+            <div class="fleet-nums">
+              <div class="fn-item green"><span>Available</span><strong>6</strong></div>
+              <div class="fn-item amber"><span>Active</span><strong>3</strong></div>
+              <div class="fn-item red"><span>Maintenance</span><strong>1</strong></div>
+            </div>
+            <div class="fleet-util">Utilization: <strong>45%</strong></div>
+            <div class="fleet-bar"><div class="fb-fill blue" style="width:45%"></div></div>
+          </div>
+          <div class="fleet-card">
+            <div class="fleet-icon">🚂</div>
+            <div class="fleet-name">RAILWAY LOGISTICS</div>
+            <div class="fleet-nums">
+              <div class="fn-item green"><span>Active Rakes</span><strong>18</strong></div>
+              <div class="fn-item amber"><span>Loading</span><strong>6</strong></div>
+              <div class="fn-item red"><span>Delayed</span><strong>3</strong></div>
+            </div>
+            <div class="fleet-util">Utilization: <strong>90%</strong></div>
+            <div class="fleet-bar"><div class="fb-fill green" style="width:90%"></div></div>
+          </div>
+          <div class="fleet-card">
+            <div class="fleet-icon">🐴</div>
+            <div class="fleet-name">MULE / PORTER COLUMNS</div>
+            <div class="fleet-nums">
+              <div class="fn-item green"><span>Active</span><strong>42</strong></div>
+              <div class="fn-item amber"><span>Standby</span><strong>18</strong></div>
+              <div class="fn-item red"><span>Recalled</span><strong>0</strong></div>
+            </div>
+            <div class="fleet-util">Utilization: <strong>70%</strong></div>
+            <div class="fleet-bar"><div class="fb-fill amber" style="width:70%"></div></div>
+          </div>
+        </div>
+
+        <!-- Convoy Table + Chart -->
+        <div class="transport-row-2">
+          <div class="glass-card active-convoys-card">
+            <div class="card-header"><span class="card-title">ACTIVE CONVOYS</span><span class="live-badge">● LIVE</span></div>
+            <table class="tactical-table">
+              <thead><tr><th>CONVOY ID</th><th>FROM</th><th>TO</th><th>CARGO</th><th>MODE</th><th>ETA</th><th>STATUS</th><th>PROGRESS</th></tr></thead>
+              <tbody id="convoyTableBody"></tbody>
+            </table>
+          </div>
+          <div class="glass-card">
+            <div class="card-header"><span class="card-title">TRANSPORT UTILIZATION</span></div>
+            <canvas id="transportChart" height="200"></canvas>
+          </div>
+        </div>
+
+        <!-- Route Optimizer -->
+        <div class="glass-card route-optimizer-card">
+          <div class="card-header"><span class="card-title">⚡ AI ROUTE OPTIMIZER</span><span class="ai-badge">VEER AI</span></div>
+          <div class="route-optimizer">
+            <div class="ro-inputs">
+              <div class="ro-field"><label>Origin Base</label><select class="cmd-select" id="roOrigin"><option>Chandigarh Depot</option><option>Delhi ASC</option><option>Jammu Base</option><option>Dibrugarh</option></select></div>
+              <div class="ro-field"><label>Destination</label><select class="cmd-select" id="roDest"><option>Leh</option><option>Siachen</option><option>Tawang</option><option>Srinagar</option></select></div>
+              <div class="ro-field"><label>Cargo Type</label><select class="cmd-select" id="roCargo"><option>Fuel</option><option>Ammunition</option><option>Rations</option><option>Medical</option><option>Mixed</option></select></div>
+              <div class="ro-field"><label>Priority</label><select class="cmd-select" id="roPriority"><option>URGENT</option><option>HIGH</option><option>NORMAL</option></select></div>
+              <button class="btn-tactical" onclick="computeRoute()">COMPUTE OPTIMAL ROUTE</button>
+            </div>
+            <div class="ro-result" id="routeResult">
+              <div class="rr-header">OPTIMAL ROUTE ANALYSIS</div>
+              <div class="rr-routes" id="rrRoutes">
+                <div class="rr-route best">
+                  <div class="rr-rank">RECOMMENDED</div>
+                  <div class="rr-name">NH-3: Manali → Rohtang → Leh</div>
+                  <div class="rr-stats">
+                    <span>Distance: <strong>490 km</strong></span>
+                    <span>ETA: <strong>18 hrs</strong></span>
+                    <span>Fuel Est: <strong>340L</strong></span>
+                    <span>Risk: <strong class="amber">MEDIUM</strong></span>
+                  </div>
+                </div>
+                <div class="rr-route alt">
+                  <div class="rr-rank">ALT-1</div>
+                  <div class="rr-name">Air Corridor: Chandigarh → Leh (AN-32)</div>
+                  <div class="rr-stats">
+                    <span>Distance: <strong>400 km</strong></span>
+                    <span>ETA: <strong>2.5 hrs</strong></span>
+                    <span>Cost: <strong>HIGH</strong></span>
+                    <span>Risk: <strong class="green">LOW</strong></span>
+                  </div>
+                </div>
+                <div class="rr-route blocked">
+                  <div class="rr-rank">❌ BLOCKED</div>
+                  <div class="rr-name">NH-1: Srinagar → Leh (Snowfall disruption predicted)</div>
+                  <div class="rr-stats">
+                    <span>Blockage Prob: <strong class="red">82%</strong></span>
+                    <span>Risk: <strong class="red">HIGH</strong></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════ PAGE: MISSION READINESS ════════════════ -->
+      <div class="page" id="page-readiness">
+        <div class="page-header">
+          <div class="page-title-group">
+            <h1 class="page-title">MISSION READINESS ENGINE</h1>
+            <span class="page-subtitle">Composite Operational Readiness Score – All Commands</span>
+          </div>
+        </div>
+
+        <!-- Overall Readiness -->
+        <div class="readiness-overview">
+          <div class="glass-card readiness-gauge-card">
+            <div class="card-header"><span class="card-title">OVERALL MISSION READINESS</span></div>
+            <div class="gauge-container">
+              <canvas id="readinessGauge" width="300" height="180"></canvas>
+              <div class="gauge-value-display" id="gaugeDisplay">
+                <div class="gv-score" id="gaugeScore">78%</div>
+                <div class="gv-label">OPERATIONAL</div>
+              </div>
+            </div>
+            <div class="readiness-factor-grid">
+              <div class="rf-item green"><span>Inventory Availability</span><span class="rf-val">82%</span></div>
+              <div class="rf-item blue"><span>Transport Capacity</span><span class="rf-val">76%</span></div>
+              <div class="rf-item amber"><span>Weather Accessibility</span><span class="rf-val">61%</span></div>
+              <div class="rf-item purple"><span>Supply Reliability</span><span class="rf-val">79%</span></div>
+              <div class="rf-item red"><span>Operational Risk Index</span><span class="rf-val">68%</span></div>
+            </div>
+          </div>
+          <div class="glass-card readiness-trend-card">
+            <div class="card-header"><span class="card-title">READINESS TREND – LAST 30 DAYS</span></div>
+            <canvas id="readinessTrendChart" height="250"></canvas>
+          </div>
+        </div>
+
+        <!-- Command-wise Readiness -->
+        <div class="glass-card">
+          <div class="card-header"><span class="card-title">COMMAND-WISE READINESS SCORECARD</span></div>
+          <div class="command-readiness-grid" id="commandReadinessGrid"></div>
+        </div>
+
+        <!-- Base-wise Readiness -->
+        <div class="glass-card">
+          <div class="card-header"><span class="card-title">BASE-WISE READINESS MATRIX</span></div>
+          <table class="tactical-table">
+            <thead>
+              <tr><th>BASE</th><th>INVENTORY</th><th>TRANSPORT</th><th>WEATHER</th><th>SUPPLY</th><th>OP RISK</th><th>READINESS SCORE</th><th>STATUS</th></tr>
+            </thead>
+            <tbody id="baseReadinessBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ════════════════ PAGE: AI INSIGHTS ════════════════ -->
+      <div class="page" id="page-insights">
+        <div class="page-header">
+          <div class="page-title-group">
+            <h1 class="page-title">AI INSIGHTS CENTER</h1>
+            <span class="page-subtitle">VEER AI – Proactive Logistics Intelligence & Recommendations</span>
+          </div>
+          <div class="page-header-actions">
+            <button class="btn-tactical" onclick="refreshInsights()">↻ REFRESH INSIGHTS</button>
+          </div>
+        </div>
+
+        <div class="insights-layout">
+          <div class="insights-main">
+            <div class="glass-card">
+              <div class="card-header"><span class="card-title">🤖 AI-GENERATED RECOMMENDATIONS</span><span class="ai-badge">POWERED BY VEER AI</span></div>
+              <div class="insights-grid" id="insightsGrid"></div>
+            </div>
+            <div class="glass-card">
+              <div class="card-header"><span class="card-title">RISK TREND ANALYSIS</span></div>
+              <canvas id="riskTrendChart" height="200"></canvas>
+            </div>
+          </div>
+          <div class="insights-side">
+            <div class="glass-card ai-stats-card">
+              <div class="card-header"><span class="card-title">AI ENGINE STATUS</span></div>
+              <div class="ai-stat-list">
+                <div class="ai-stat"><span>Model Accuracy</span><strong class="green">94.2%</strong></div>
+                <div class="ai-stat"><span>Last Trained</span><strong>6 hrs ago</strong></div>
+                <div class="ai-stat"><span>Data Points</span><strong>2.4M</strong></div>
+                <div class="ai-stat"><span>Predictions Made</span><strong>18,420</strong></div>
+                <div class="ai-stat"><span>Alerts Generated</span><strong>847</strong></div>
+                <div class="ai-stat"><span>Routes Optimized</span><strong>1,240</strong></div>
+              </div>
+              <div class="ai-confidence-bar">
+                <div class="acb-label">Overall Confidence</div>
+                <div class="acb-bar"><div class="acb-fill" style="width:91%"></div></div>
+                <span>91%</span>
+              </div>
+            </div>
+            <div class="glass-card">
+              <div class="card-header"><span class="card-title">PRIORITY ACTIONS</span></div>
+              <div class="priority-actions-list" id="priorityActionsList"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════ PAGE: SCENARIO SIMULATOR ════════════════ -->
+      <div class="page" id="page-simulator">
+        <div class="page-header">
+          <div class="page-title-group">
+            <h1 class="page-title">EMERGENCY SCENARIO SIMULATOR</h1>
+            <span class="page-subtitle">AI-Driven Tactical Scenario Analysis & Response Planning</span>
+          </div>
+        </div>
+
+        <div class="simulator-layout">
+          <div class="glass-card scenario-selector-card">
+            <div class="card-header"><span class="card-title">SELECT SCENARIO</span></div>
+            <div class="scenario-grid">
+              <div class="scenario-btn" id="scen-snowfall" onclick="runScenario('snowfall')">
+                <div class="scen-icon">❄️</div>
+                <div class="scen-name">HEAVY SNOWFALL</div>
+                <div class="scen-desc">Simulate 72-hr severe snowfall event</div>
+              </div>
+              <div class="scenario-btn" id="scen-roadclosure" onclick="runScenario('roadclosure')">
+                <div class="scen-icon">🚧</div>
+                <div class="scen-name">ROAD CLOSURE</div>
+                <div class="scen-desc">NH-1 complete blockage scenario</div>
+              </div>
+              <div class="scenario-btn" id="scen-mobilization" onclick="runScenario('mobilization')">
+                <div class="scen-icon">🪖</div>
+                <div class="scen-name">TROOP MOBILIZATION</div>
+                <div class="scen-desc">Sudden 5,000 troop forward deployment</div>
+              </div>
+              <div class="scenario-btn" id="scen-medical" onclick="runScenario('medical')">
+                <div class="scen-icon">🏥</div>
+                <div class="scen-name">MEDICAL EMERGENCY</div>
+                <div class="scen-desc">Mass casualty event – forward base</div>
+              </div>
+              <div class="scenario-btn" id="scen-escalation" onclick="runScenario('escalation')">
+                <div class="scen-icon">⚠️</div>
+                <div class="scen-name">BORDER ESCALATION</div>
+                <div class="scen-desc">High readiness – northern sector</div>
+              </div>
+              <div class="scenario-btn" id="scen-airlift" onclick="runScenario('airlift')">
+                <div class="scen-icon">✈️</div>
+                <div class="scen-name">EMERGENCY AIRLIFT</div>
+                <div class="scen-desc">Critical supply - helicopter only access</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card scenario-results-card" id="scenarioResultsCard">
+            <div class="card-header"><span class="card-title" id="scenarioResultTitle">SIMULATION RESULTS</span><span class="ai-badge">AI ANALYSIS</span></div>
+            <div id="scenarioResultContent">
+              <div class="scen-placeholder">
+                <div class="scen-ph-icon">🎯</div>
+                <p>Select a scenario above to run AI-powered impact analysis and response recommendations.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card" id="scenImpactChartCard" style="display:none">
+          <div class="card-header"><span class="card-title" id="scenChartTitle">SCENARIO IMPACT ANALYSIS</span></div>
+          <canvas id="scenarioImpactChart" height="180"></canvas>
+        </div>
+      </div>
+
+      <!-- ════════════════ PAGE: REPORTS ════════════════ -->
+      <div class="page" id="page-reports">
+        <div class="page-header">
+          <div class="page-title-group">
+            <h1 class="page-title">REPORTS & ANALYTICS</h1>
+            <span class="page-subtitle">Downloadable Intelligence Reports & Export Center</span>
+          </div>
+        </div>
+
+        <div class="reports-grid">
+          <div class="report-card">
+            <div class="rc-icon">📊</div>
+            <div class="rc-title">SUPPLY STATUS REPORT</div>
+            <div class="rc-desc">Comprehensive supply chain status across all bases with inventory levels and consumption rates.</div>
+            <div class="rc-meta"><span>📅 Generated: Today 12:00</span><span>📄 Pages: 24</span></div>
+            <div class="rc-actions">
+              <button class="btn-tactical small" onclick="downloadReport('supply','pdf')">PDF</button>
+              <button class="btn-outline small" onclick="downloadReport('supply','excel')">EXCEL</button>
+              <button class="btn-outline small" onclick="printReport('supply')">PRINT</button>
+            </div>
+          </div>
+          <div class="report-card">
+            <div class="rc-icon">🛡</div>
+            <div class="rc-title">MISSION READINESS REPORT</div>
+            <div class="rc-desc">Detailed readiness assessment for all commands and forward bases with factor analysis.</div>
+            <div class="rc-meta"><span>📅 Generated: Today 12:00</span><span>📄 Pages: 18</span></div>
+            <div class="rc-actions">
+              <button class="btn-tactical small" onclick="downloadReport('readiness','pdf')">PDF</button>
+              <button class="btn-outline small" onclick="downloadReport('readiness','excel')">EXCEL</button>
+              <button class="btn-outline small" onclick="printReport('readiness')">PRINT</button>
+            </div>
+          </div>
+          <div class="report-card">
+            <div class="rc-icon">📈</div>
+            <div class="rc-title">INVENTORY FORECAST REPORT</div>
+            <div class="rc-desc">AI-generated demand forecasts and inventory projections for next 30/90 days.</div>
+            <div class="rc-meta"><span>📅 Generated: Today 12:00</span><span>📄 Pages: 32</span></div>
+            <div class="rc-actions">
+              <button class="btn-tactical small" onclick="downloadReport('inventory','pdf')">PDF</button>
+              <button class="btn-outline small" onclick="downloadReport('inventory','excel')">EXCEL</button>
+              <button class="btn-outline small" onclick="printReport('inventory')">PRINT</button>
+            </div>
+          </div>
+          <div class="report-card">
+            <div class="rc-icon">🚛</div>
+            <div class="rc-title">TRANSPORTATION ANALYSIS</div>
+            <div class="rc-desc">Fleet utilization, convoy performance, route efficiency, and optimization recommendations.</div>
+            <div class="rc-meta"><span>📅 Generated: Today 12:00</span><span>📄 Pages: 20</span></div>
+            <div class="rc-actions">
+              <button class="btn-tactical small" onclick="downloadReport('transport','pdf')">PDF</button>
+              <button class="btn-outline small" onclick="downloadReport('transport','excel')">EXCEL</button>
+              <button class="btn-outline small" onclick="printReport('transport')">PRINT</button>
+            </div>
+          </div>
+          <div class="report-card">
+            <div class="rc-icon">⚠️</div>
+            <div class="rc-title">RISK ASSESSMENT REPORT</div>
+            <div class="rc-desc">Weather risk, terrain analysis, supply chain vulnerabilities, and mitigation strategies.</div>
+            <div class="rc-meta"><span>📅 Generated: Today 12:00</span><span>📄 Pages: 28</span></div>
+            <div class="rc-actions">
+              <button class="btn-tactical small" onclick="downloadReport('risk','pdf')">PDF</button>
+              <button class="btn-outline small" onclick="downloadReport('risk','excel')">EXCEL</button>
+              <button class="btn-outline small" onclick="printReport('risk')">PRINT</button>
+            </div>
+          </div>
+          <div class="report-card">
+            <div class="rc-icon">🤖</div>
+            <div class="rc-title">AI INSIGHTS WEEKLY BRIEF</div>
+            <div class="rc-desc">VEER AI generated weekly intelligence summary with priority recommendations and risk flags.</div>
+            <div class="rc-meta"><span>📅 Generated: Today 12:00</span><span>📄 Pages: 12</span></div>
+            <div class="rc-actions">
+              <button class="btn-tactical small" onclick="downloadReport('ai','pdf')">PDF</button>
+              <button class="btn-outline small" onclick="downloadReport('ai','excel')">EXCEL</button>
+              <button class="btn-outline small" onclick="printReport('ai')">PRINT</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Export Analytics Chart -->
+        <div class="glass-card">
+          <div class="card-header"><span class="card-title">REPORT EXPORT HISTORY – LAST 30 DAYS</span></div>
+          <canvas id="reportChart" height="160"></canvas>
+        </div>
+      </div>
+
+      <!-- ════════════════ PAGE: VEER AI CHAT ════════════════ -->
+      <div class="page" id="page-veer">
+        <div class="page-header">
+          <div class="page-title-group">
+            <h1 class="page-title">VEER AI – LOGISTICS ASSISTANT</h1>
+            <span class="page-subtitle">AI-Powered Military Logistics Intelligence Assistant</span>
+          </div>
+          <div class="page-header-actions">
+            <button class="btn-outline" onclick="clearChat()">CLEAR CHAT</button>
+          </div>
+        </div>
+
+        <div class="veer-layout">
+          <!-- Chat Window -->
+          <div class="glass-card veer-chat-card">
+            <div class="veer-chat-header">
+              <div class="veer-avatar-wrap">
+                <div class="veer-avatar">V</div>
+                <div class="veer-status-dot"></div>
+              </div>
+              <div>
+                <div class="veer-name">VEER AI</div>
+                <div class="veer-subtitle">Active · 94.2% Accuracy · 2.4M Data Points</div>
+              </div>
+              <div class="veer-model-badge">CLASSIFIED SYSTEM</div>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+              <div class="chat-msg ai">
+                <div class="chat-avatar ai">V</div>
+                <div class="chat-bubble ai">
+                  <strong>Jai Hind! I am VEER AI</strong>, your AI-powered Logistics Intelligence Assistant for the Indian Army.<br/><br/>
+                  I have access to real-time inventory data, demand forecasts, weather intelligence, and route optimization systems. I can help you plan convoys, predict shortages, assess readiness, and recommend optimal supply strategies.<br/><br/>
+                  How can I assist your mission today?
+                </div>
+              </div>
+            </div>
+            <div class="chat-input-wrap">
+              <input type="text" class="chat-input" id="chatInput" placeholder="Ask VEER AI about logistics, supply, routes, readiness..." onkeydown="if(event.key==='Enter')sendChatMsg()"/>
+              <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMsg()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Suggested Prompts & Context -->
+          <div class="veer-side">
+            <div class="glass-card">
+              <div class="card-header"><span class="card-title">SUGGESTED QUERIES</span></div>
+              <div class="suggested-prompts" id="suggestedPrompts">
+                <button class="prompt-btn" onclick="useSuggestedPrompt(this)">How much fuel should be dispatched to Leh next week?</button>
+                <button class="prompt-btn" onclick="useSuggestedPrompt(this)">Which bases face critical supply shortages?</button>
+                <button class="prompt-btn" onclick="useSuggestedPrompt(this)">Show ammunition demand forecast for Northern Command.</button>
+                <button class="prompt-btn" onclick="useSuggestedPrompt(this)">Recommend the safest convoy route to Siachen.</button>
+                <button class="prompt-btn" onclick="useSuggestedPrompt(this)">What is the mission readiness of Northern Command?</button>
+                <button class="prompt-btn" onclick="useSuggestedPrompt(this)">Analyze weather risk for next 7 days across all sectors.</button>
+                <button class="prompt-btn" onclick="useSuggestedPrompt(this)">Predict medical supply requirement for Tawang base.</button>
+                <button class="prompt-btn" onclick="useSuggestedPrompt(this)">How many transport assets are currently available?</button>
+                <button class="prompt-btn" onclick="useSuggestedPrompt(this)">What emergency actions should be taken for Siachen fuel shortage?</button>
+              </div>
+            </div>
+            <div class="glass-card">
+              <div class="card-header"><span class="card-title">VEER AI CAPABILITIES</span></div>
+              <div class="capabilities-list">
+                <div class="cap-item"><span class="cap-icon">📊</span><span>Demand Forecasting Analysis</span></div>
+                <div class="cap-item"><span class="cap-icon">📦</span><span>Inventory Status Queries</span></div>
+                <div class="cap-item"><span class="cap-icon">🗺️</span><span>Route Optimization</span></div>
+                <div class="cap-item"><span class="cap-icon">🌨️</span><span>Weather Risk Assessment</span></div>
+                <div class="cap-item"><span class="cap-icon">🛡️</span><span>Mission Readiness Reports</span></div>
+                <div class="cap-item"><span class="cap-icon">🚛</span><span>Convoy Planning</span></div>
+                <div class="cap-item"><span class="cap-icon">⚠️</span><span>Alert & Risk Analysis</span></div>
+                <div class="cap-item"><span class="cap-icon">📈</span><span>Trend & Pattern Analysis</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- CONVOY PLAN MODAL -->
+  <div class="modal-overlay" id="convoyModal" onclick="if(this===event.target)closeModal('convoyModal')">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span>PLAN NEW CONVOY</span>
+        <button onclick="closeModal('convoyModal')" class="modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field"><label>Convoy Name / ID</label><input type="text" class="cmd-input" placeholder="e.g. CONVOY-2024-LEH-07" id="newConvoyId" /></div>
+        <div class="modal-field"><label>Origin</label><select class="cmd-select full" id="newConvoyOrigin"><option>Chandigarh Depot</option><option>Delhi ASC</option><option>Jammu Base</option><option>Dibrugarh</option></select></div>
+        <div class="modal-field"><label>Destination</label><select class="cmd-select full" id="newConvoyDest"><option>Leh</option><option>Siachen</option><option>Tawang</option><option>Srinagar</option><option>Jaisalmer</option></select></div>
+        <div class="modal-field"><label>Cargo Type</label><select class="cmd-select full" id="newConvoyCargo"><option>Fuel</option><option>Ammunition</option><option>Rations</option><option>Medical</option><option>Winter Equipment</option><option>Mixed</option></select></div>
+        <div class="modal-field"><label>Departure Time</label><input type="datetime-local" class="cmd-input" id="newConvoyDept" /></div>
+        <div class="modal-field"><label>Mode of Transport</label><select class="cmd-select full" id="newConvoyMode"><option>Road Convoy</option><option>Air (AN-32)</option><option>Helicopter</option><option>Rail + Road</option></select></div>
+        <div class="modal-actions">
+          <button class="btn-tactical" onclick="createConvoy()">CREATE CONVOY</button>
+          <button class="btn-outline" onclick="closeModal('convoyModal')">CANCEL</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
